@@ -22,8 +22,9 @@
                 <input type="password" id="login-senha" placeholder="Senha" required>
                 <button type="submit" class="btn">Entrar</button>
             </form>
+            <button id="btn-admin-teste" class="btn" style="background: #333; margin-top: 10px; width: 100%;">Entrar Automático (Admin)</button>
             <hr>
-            <button id="btn-google" class="btn" style="background: #db4437;">Entrar com Google</button>
+            <button id="btn-google" class="btn" style="background: #db4437; display: none;">Entrar com Google</button>
             <p>Não tem uma conta? <button onclick="alternarForm()" class="btn">Cadastre-se</button></p>
         </div>
 
@@ -48,7 +49,31 @@
     <script type="module">
         import { loginUsuario, cadastrarUsuario, loginGoogle } from '../firebase/auth.js';
 
-        // Google Login
+        // Login Automático Admin
+        document.getElementById('btn-admin-teste').addEventListener('click', async () => {
+            const email = 'admin@loja.com';
+            const senha = 'admin123456';
+            try {
+                await loginUsuario(email, senha);
+                alert('Login Automático realizado!');
+                window.location.href = '../index.html';
+            } catch (err) {
+                // Se o usuário não existir, cria ele na hora
+                if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
+                    try {
+                        await cadastrarUsuario(email, senha);
+                        alert('Conta de Admin criada e logada com sucesso!');
+                        window.location.href = '../index.html';
+                    } catch (errCad) {
+                        alert('Erro ao criar conta automática: ' + errCad.message);
+                    }
+                } else {
+                    alert('Erro no login automático: ' + err.message);
+                }
+            }
+        });
+
+        // Google Login (Oculto agora, mas funcional se precisar)
         document.getElementById('btn-google').addEventListener('click', async () => {
             try {
                 await loginGoogle();
