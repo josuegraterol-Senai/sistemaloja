@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Adicionar Produto</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <header>
+        <h1>Painel Admin</h1>
+        <nav><a href="../index.html">Home</a></nav>
+    </header>
+
+    <main class="container">
+        <h2>Adicionar Novo Produto</h2>
+        <form id="form-admin">
+            <input type="text" id="p-nome" placeholder="Nome do Produto" required>
+            <textarea id="p-desc" placeholder="Descrição"></textarea>
+            <input type="number" id="p-preco" placeholder="Preço" step="0.01" required>
+            <label>Imagem do Produto:</label>
+            <input type="file" id="p-imagem" accept="image/*" required>
+            <button type="submit" id="btn-submit" class="btn">Salvar Produto</button>
+        </form>
+        <p id="status"></p>
+    </main>
+
+    <script type="module">
+        import { adicionarProduto } from '../firebase/firestore.js';
+        import { uploadImagemProduto } from '../firebase/storage.js';
+        import { auth } from '../firebase/config.js';
+
+        const form = document.getElementById('form-admin');
+        const status = document.getElementById('status');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Verificação básica de admin (opcional: pode ser mais robusta)
+            if (!auth.currentUser || auth.currentUser.email !== 'admin@loja.com') {
+                alert('Acesso negado. Apenas admin@loja.com pode adicionar produtos.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            status.innerText = 'Fazendo upload da imagem...';
+
+            try {
+                const imagemFile = document.getElementById('p-imagem').files[0];
+                const urlImagem = await uploadImagemProduto(imagemFile);
+
+                status.innerText = 'Salvando produto no banco...';
+                
+                const novoProduto = {
+                    nome: document.getElementById('p-nome').value,
+                    descricao: document.getElementById('p-desc').value,
+                    preco: document.getElementById('p-preco').value,
+                    imagem: urlImagem,
+                    criadoEm: new Date()
+                };
+
+                await adicionarProduto(novoProduto);
+                status.innerText = 'Produto adicionado com sucesso!';
+                form.reset();
+            } catch (err) {
+                status.innerText = 'Erro: ' + err.message;
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

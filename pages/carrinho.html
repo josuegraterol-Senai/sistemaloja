@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho - Minha Loja</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <header>
+        <h1>Loja de Roupas</h1>
+        <nav>
+            <a href="../index.html">Home</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Seu Carrinho</h2>
+        <div id="itens-carrinho">
+            <p>Carregando carrinho...</p>
+        </div>
+        <div id="total-carrinho"></div>
+        <button id="btn-finalizar" class="btn hidden">Finalizar Compra</button>
+    </main>
+
+    <script type="module">
+        import { auth } from '../firebase/config.js';
+        import { observarAutenticacao } from '../firebase/auth.js';
+        import { obterCarrinho } from '../firebase/firestore.js';
+
+        const container = document.getElementById('itens-carrinho');
+        const totalDiv = document.getElementById('total-carrinho');
+        const btnFinalizar = document.getElementById('btn-finalizar');
+
+        observarAutenticacao(async (user) => {
+            if (user) {
+                const itens = await obterCarrinho(user.uid);
+                renderizarCarrinho(itens);
+            } else {
+                container.innerHTML = '<p>Faça login para ver seu carrinho.</p>';
+            }
+        });
+
+        function renderizarCarrinho(itens) {
+            container.innerHTML = '';
+            if (!itens || itens.length === 0) {
+                container.innerHTML = '<p>Carrinho vazio.</p>';
+                return;
+            }
+
+            let total = 0;
+            itens.forEach(item => {
+                const div = document.createElement('div');
+                div.style.borderBottom = '1px solid #ccc';
+                div.style.padding = '10px';
+                div.innerHTML = `
+                    <span>${item.nome}</span> - 
+                    <strong>R$ ${item.preco}</strong>
+                `;
+                container.appendChild(div);
+                total += parseFloat(item.preco);
+            });
+
+            totalDiv.innerHTML = `<h3>Total: R$ ${total.toFixed(2)}</h3>`;
+            btnFinalizar.classList.remove('hidden');
+        }
+
+        btnFinalizar.onclick = () => alert('Funcionalidade de checkout será implementada no futuro!');
+    </script>
+</body>
+</html>

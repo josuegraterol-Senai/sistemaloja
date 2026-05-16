@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Minha Loja</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <header>
+        <h1>Loja de Roupas</h1>
+        <nav>
+            <a href="../index.html">Home</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div id="login-section">
+            <h2>Login</h2>
+            <form id="form-login">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-senha" placeholder="Senha" required>
+                <button type="submit" class="btn">Entrar</button>
+            </form>
+            <hr>
+            <button id="btn-google" class="btn" style="background: #db4437;">Entrar com Google</button>
+            <p>Não tem uma conta? <button onclick="alternarForm()" class="btn">Cadastre-se</button></p>
+        </div>
+
+        <div id="cadastro-section" class="hidden">
+            <h2>Cadastro</h2>
+            <form id="form-cadastro">
+                <input type="email" id="cad-email" placeholder="Email" required>
+                <input type="password" id="cad-senha" placeholder="Senha" required>
+                <button type="submit" class="btn">Cadastrar</button>
+            </form>
+            <p>Já tem uma conta? <button onclick="alternarForm()" class="btn">Fazer Login</button></p>
+        </div>
+    </main>
+
+    <script>
+        function alternarForm() {
+            document.getElementById('login-section').classList.toggle('hidden');
+            document.getElementById('cadastro-section').classList.toggle('hidden');
+        }
+    </script>
+
+    <script type="module">
+        import { loginUsuario, cadastrarUsuario, loginGoogle } from '../firebase/auth.js';
+
+        // Google Login
+        document.getElementById('btn-google').addEventListener('click', async () => {
+            try {
+                await loginGoogle();
+                alert('Login com Google realizado!');
+                window.location.href = '../index.html';
+            } catch (err) {
+                alert('Erro: ' + err.message);
+            }
+        });
+
+        // Login
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+            try {
+                await loginUsuario(email, senha);
+                alert('Login realizado!');
+                window.location.href = '../index.html';
+            } catch (err) {
+                alert('Erro: ' + err.message);
+            }
+        });
+
+        // Cadastro
+        document.getElementById('form-cadastro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('cad-email').value;
+            const senha = document.getElementById('cad-senha').value;
+            try {
+                await cadastrarUsuario(email, senha);
+                alert('Cadastro realizado!');
+                window.location.href = '../index.html';
+            } catch (err) {
+                alert('Erro: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

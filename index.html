@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Loja de Roupas</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <header id="main-header">
+        <!-- O conteúdo será carregado via JS ou incluído manualmente -->
+        <h1>Loja de Roupas</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="pages/carrinho.html">Carrinho</a>
+            <a href="pages/perfil.html" id="link-perfil" class="hidden">Perfil</a>
+            <a href="pages/login.html" id="link-login">Login</a>
+            <a href="pages/admin.html" id="link-admin" class="hidden">Admin</a>
+            <button id="btn-logout" class="hidden">Sair</button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Produtos em Destaque</h2>
+        <div id="lista-produtos" class="product-grid">
+            <!-- Produtos serão inseridos aqui via JS -->
+            <p>Carregando produtos...</p>
+        </div>
+    </main>
+
+    <footer>
+        <p class="container">&copy; 2026 Minha Loja de Roupas</p>
+    </footer>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module">
+        import { listarProdutos } from './firebase/firestore.js';
+        
+        const container = document.getElementById('lista-produtos');
+
+        async function carregarProdutos() {
+            try {
+                const produtos = await listarProdutos();
+                container.innerHTML = '';
+                
+                if (produtos.length === 0) {
+                    container.innerHTML = '<p>Nenhum produto encontrado.</p>';
+                    return;
+                }
+
+                produtos.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <img src="${p.imagem || 'https://via.placeholder.com/150'}" alt="${p.nome}">
+                        <h3>${p.nome}</h3>
+                        <p>R$ ${p.preco}</p>
+                        <a href="pages/produto.html?id=${p.id}" class="btn">Ver Detalhes</a>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = '<p>Erro ao carregar produtos. Verifique as configurações do Firebase.</p>';
+            }
+        }
+
+        carregarProdutos();
+    </script>
+</body>
+</html>

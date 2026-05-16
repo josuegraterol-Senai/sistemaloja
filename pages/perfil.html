@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Minha Loja</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <header>
+        <h1>Minha Loja</h1>
+        <nav><a href="../index.html">Home</a></nav>
+    </header>
+
+    <main class="container">
+        <h2>Área do Usuário</h2>
+        <div id="user-info"></div>
+        <hr>
+        <h3>Meus Favoritos</h3>
+        <div id="lista-favoritos" class="product-grid">
+            <p>Carregando favoritos...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth } from '../firebase/config.js';
+        import { observarAutenticacao } from '../firebase/auth.js';
+        import { obterFavoritos, obterProduto } from '../firebase/firestore.js';
+
+        const infoDiv = document.getElementById('user-info');
+        const favGrid = document.getElementById('lista-favoritos');
+
+        observarAutenticacao(async (user) => {
+            if (user) {
+                infoDiv.innerHTML = `<p>Logado como: <strong>${user.email}</strong></p>`;
+                const idsFavoritos = await obterFavoritos(user.uid);
+                renderizarFavoritos(idsFavoritos);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        async function renderizarFavoritos(ids) {
+            favGrid.innerHTML = '';
+            if (!ids || ids.length === 0) {
+                favGrid.innerHTML = '<p>Você ainda não tem favoritos.</p>';
+                return;
+            }
+
+            for (const id of ids) {
+                const p = await obterProduto(id);
+                if (p) {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <img src="${p.imagem || 'https://via.placeholder.com/150'}" alt="${p.nome}">
+                        <h4>${p.nome}</h4>
+                        <a href="produto.html?id=${p.id}" class="btn">Ver</a>
+                    `;
+                    favGrid.appendChild(card);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

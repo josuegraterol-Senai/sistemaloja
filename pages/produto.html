@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Produto</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <header>
+        <h1>Loja de Roupas</h1>
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="carrinho.html">Carrinho</a>
+        </nav>
+    </header>
+
+    <main class="container" id="detalhes-produto">
+        <p>Carregando...</p>
+    </main>
+
+    <script type="module">
+        import { obterProduto, adicionarAoCarrinho, alternarFavorito } from '../firebase/firestore.js';
+        import { auth } from '../firebase/config.js';
+
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const main = document.getElementById('detalhes-produto');
+
+        async function carregarDetalhes() {
+            if (!id) return;
+            const p = await obterProduto(id);
+            if (!p) {
+                main.innerHTML = '<h2>Produto não encontrado</h2>';
+                return;
+            }
+
+            main.innerHTML = `
+                <div style="display: flex; gap: 20px;">
+                    <img src="${p.imagem || 'https://via.placeholder.com/300'}" style="max-width: 300px;">
+                    <div>
+                        <h2>${p.nome}</h2>
+                        <p>${p.descricao || 'Sem descrição.'}</p>
+                        <h3>R$ ${p.preco}</h3>
+                        <button id="btn-add-cart" class="btn">Adicionar ao Carrinho</button>
+                        <button id="btn-fav" class="btn btn-fav">Favoritar</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('btn-add-cart').onclick = async () => {
+                const user = auth.currentUser;
+                if (!user) {
+                    alert('Faça login para adicionar ao carrinho');
+                    return;
+                }
+                await adicionarAoCarrinho(user.uid, { id: p.id, nome: p.nome, preco: p.preco, imagem: p.imagem });
+                alert('Adicionado ao carrinho!');
+            };
+
+            document.getElementById('btn-fav').onclick = async () => {
+                const user = auth.currentUser;
+                if (!user) {
+                    alert('Faça login para favoritar');
+                    return;
+                }
+                await alternarFavorito(user.uid, p.id);
+                alert('Favoritos atualizados!');
+            };
+        }
+
+        carregarDetalhes();
+    </script>
+</body>
+</html>
